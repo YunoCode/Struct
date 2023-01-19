@@ -1,3 +1,5 @@
+local New = {}
+
 local PlayerGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 
 local Symbols = require(script.Parent.Symbols)
@@ -33,7 +35,7 @@ end
 
 type Properties = { [string | Symbol]: any | State | Update | {}, }
 
-local NewFn = function(ClassName: string | () -> (Instance))
+function New.new(ClassName: string | () -> (Instance))
     local scs, instance = pcall(Instance.new, ClassName)
     local component
 
@@ -47,42 +49,7 @@ local NewFn = function(ClassName: string | () -> (Instance))
 
     return function(Properties: Properties): Instance
         if scs then
-            for i, v in Properties do
-                if type(i) == "string" then
-                    if i == "Parent" and v == Symbols.PlayerGui then
-                        instance[i] = PlayerGui
-                    elseif type(v) == "table" then
-                        if v._type == State.type then
-                            v.OnChanged:Connect(function(res)
-                                trySetProperty(instance, i, res)
-                            end)
-                            trySetProperty(instance, i, v:Get())
-                        elseif v._type == Update.Type then
-                            v.OnInvoked:Connect(function(res)
-                                trySetProperty(instance, i, res)
-                            end)
-                            trySetProperty(instance, i, v:Invoke())
-                        end
-                    else
-                        trySetProperty(instance, i, v)
-                    end
-                elseif i == Symbols.Children then
-                    for _, new in v do
-                        new.Parent = instance
-                    end
-                elseif i == Symbols.Events then
-                    for eventName, eventFn in v do
-                        if instance[eventName] then
-                            instance[eventName]:Connect(eventFn)
-                        else
-                            throwErr(("event %s is not a valid event Name"):format(eventName)) 
-                        end
-                    end
-                else
-                    throwErr("unknown property Type")
-                end
-            end
-    
+            New.AssignProperties(instance, Properties)
             return instance
         elseif component then
             return component(Properties)
@@ -92,4 +59,47 @@ local NewFn = function(ClassName: string | () -> (Instance))
     end
 end
 
-return NewFn
+function New.AssignProperties(instance, Properties)
+    for i, v in Properties do
+        if type(i) == "string" then
+            if i == "Parent" and v == Symbols.PlayerGui then
+                instance[i] = PlayerGui
+            elseif type(v) == "table" then
+                if v._type == State.type then
+                    v.OnChanged:Connect(function(res)
+                        trySetProperty(instance, i, res)
+                    end)
+                    trySetProperty(instance, i, v:Get())
+                elseif v._type == Update.Type then
+                    v.OnInvoked:Connect(function(res)
+                        trySetProperty(instance, i, res)
+                    end)
+                    trySetProperty(instance, i, v:Invoke())
+                end
+            else
+                trySetProperty(instance, i, v)
+            end
+        elseif i == Symbols.Children then
+            for index, new in v do
+                if type(index) ~= "number" then
+                    -- assigned property
+                    New.AssignProperties(instance[index], new)
+                else
+                    new.Parent = instance
+                end
+            end
+        elseif i == Symbols.Events then
+            for eventName, eventFn in v do
+                if instance[eventName] then
+                    instance[eventName]:Connect(eventFn)
+                else
+                    throwErr(("event %s is not a valid event Name"):format(eventName)) 
+                end
+            end
+        else
+            throwErr("unknown property Type")
+        end
+    end
+end
+
+return New
