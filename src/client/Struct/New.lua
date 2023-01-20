@@ -60,6 +60,7 @@ function New.new(ClassName: string | () -> (Instance))
 end
 
 function New.AssignProperties(instance, Properties)
+    print(Properties)
     for i, v in Properties do
         if type(i) == "string" then
             if i == "Parent" and v == Symbols.PlayerGui then

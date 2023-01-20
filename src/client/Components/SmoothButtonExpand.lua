@@ -10,7 +10,7 @@ local Spring = Struct.Spring
 local State = Struct.State
 
 return function (props)
-    local propSize = Helper.offsetToScale(props.Size)
+    local propSize = Helper.OffsetToScale(props.Size)
     local sizeSpring = Spring(propSize, 50, 1)
     local size = State(sizeSpring:Get())
 
@@ -24,15 +24,15 @@ return function (props)
             return size:Get()
         end),
 
-        [Struct.Symbols.Events] = {
+        [Struct.Symbols.Events] = Helper.Overwrite (props[Struct.Symbols.Events]) {
             MouseEnter = function()
                 sizeSpring:Set(Helper.multUDim2(propSize, 1.1))
             end,
 
             MouseLeave = function()
                 sizeSpring:Set(propSize)
-            end
-        }
+            end,
+        } 
     }
 end
 
