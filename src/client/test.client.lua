@@ -1,4 +1,3 @@
-local StarterPack = game:GetService("StarterPack")
 local Struct = require(script.Parent.Struct)
 
 local New = Struct.New
@@ -9,23 +8,33 @@ local Spring = Struct.Spring
 
 local SmoothButtonExpand = require(script.Parent.Components.SmoothButtonExpand)
 
-local Theme = State(Color3.fromRGB(255, 255, 255))
-local themeSpring = Spring()
+local themeSpring = Spring(Color3.new(1, 1, 1), 50, 1)
+local Theme = State(themeSpring:Get())
+
+Theme.OnChanged:Connect(function(c)
+    themeSpring:Set(c)
+end)
 
 New "ScreenGui" {
-
     Parent = Symbols.PlayerGui,
     [Symbols.Children] = {
         SmoothButtonExpand {
             Text = Update(function()
-                return tostring(Theme:Get())
+                return `current color: {tostring(Theme:Get())}`
             end),
             Size = UDim2.new(0, 200, 0, 50),
             Position = UDim2.new(0.5, 0, 0.5, 0),
-            Bevel = 6,
-            Color = Update(function()
-                
+            BackgroundColor3 = themeSpring,
+            TextColor3 = Update(function()
+                local color = themeSpring:Get()
+
+                return Color3.new(
+                    1 - color.R,
+                    1 - color.G,
+                    1 - color.B
+                )
             end),
+            Bevel = 6,
 
             [Symbols.Events] = {
                 Activated = function()

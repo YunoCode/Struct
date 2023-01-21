@@ -1,5 +1,29 @@
 local Helper = {}
 
+local function deepCopy(t)
+    local new = {}
+
+    for i, v in t do
+        if type(v) == "table" then
+            new[i] = deepCopy(v)
+        else
+            new[i] = v
+        end
+    end
+
+    return new
+end
+
+local function shallowCopy(t)
+    local new = {}
+
+    for i, v in t do
+        new[i] = v
+    end
+
+    return new
+end
+
 function Helper.MultUDim2(udim2, multiply)
     return UDim2.new(
         udim2.X.Scale * multiply,
@@ -22,15 +46,13 @@ end
 
 function Helper.Overwrite(original)
     return function (with)
-        local new = {}
-        for i, v in original do
-            if with[i] then
-                new[i] = with[i]
-            else
-                new[i] = v
-            end
+        local new = shallowCopy(original)
+
+        for i, v in with do
+            new[i] = v
         end
-        return new 
+
+        return new
     end
 end
 

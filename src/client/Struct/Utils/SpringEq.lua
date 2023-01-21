@@ -1,12 +1,32 @@
 local RunService = game:GetService("RunService")
----------------------------------
---> Made by: ProxyBuild			-
---> Date: 25/9/2021				-
----------------------------------
 local Spring = {}
 
 local function GetTime()
 	return os.clock()
+end
+
+local function multiply(t, a)
+	if type(t) == "table" then
+		local newt = {}
+		for i, v in t do
+			newt[i] = v * if type(a) == "table" then a[i] else a
+		end
+		return newt
+	else
+		return t * a
+	end
+end
+
+local function add(t, a)
+	if type(t) == "table" then
+		local newt = {}
+		for i, v in t do
+			newt[i] = v + if type(a) == "table" then a[i] else a
+		end
+		return newt
+	else
+		return t + a
+	end
 end
 
 --- Creates a new spring
@@ -17,7 +37,7 @@ function Spring.new(initial)
 	return setmetatable({
 		_time0 = GetTime();
 		_position0 = target;
-		_velocity0 = 0*target;
+		_velocity0 = multiply(target, 0);
 		_target = target;
 		_damper = 0.6;
 		_speed = 15;
@@ -130,7 +150,21 @@ function Spring:_positionVelocity(now)
 	local b1 = s*si
 	local b2 = h*co - d*si
 
-	return a0*p0 + a1*p1 + a2*v0, b0*p0 + b1*p1 + b2*v0
+	local total1, total2 = add(
+		multiply(p0, a0),
+		add(
+			multiply(v0, a2),
+			multiply(p1, a1)
+		)
+	), add(
+		multiply(p0, b0),
+		add(
+			multiply(v0, b2),
+			multiply(p1, b1)
+		)
+	)
+
+	return total1, total2
 end
 
 function Spring:Destroy()
@@ -138,3 +172,4 @@ function Spring:Destroy()
 end
 
 return Spring
+

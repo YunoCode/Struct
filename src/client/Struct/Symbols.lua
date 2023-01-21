@@ -1,7 +1,7 @@
 local Symbol = require(script.Parent.Utils.Symbol)
 
 return {
-    PlayerGui = Symbol(),
-    Children = Symbol(),
-    Events = Symbol()
+    PlayerGui = Symbol("PlayerGui"),
+    Children = Symbol("Children"),
+    Events = Symbol("Events")
 }

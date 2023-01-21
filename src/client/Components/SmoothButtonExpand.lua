@@ -12,21 +12,14 @@ local State = Struct.State
 return function (props)
     local propSize = Helper.OffsetToScale(props.Size)
     local sizeSpring = Spring(propSize, 50, 1)
-    local size = State(sizeSpring:Get())
-
-    RunService.Heartbeat:Connect(function(deltaTime)
-        size:Set(sizeSpring:Get())
-    end)
 
     return Redo ( SmoothButton (props) ) {
         Name = "Urmom",
-        Size = Update(function()
-            return size:Get()
-        end),
+        Size = sizeSpring,
 
         [Struct.Symbols.Events] = Helper.Overwrite (props[Struct.Symbols.Events]) {
             MouseEnter = function()
-                sizeSpring:Set(Helper.multUDim2(propSize, 1.1))
+                sizeSpring:Set(Helper.MultUDim2(propSize, 1.1))
             end,
 
             MouseLeave = function()

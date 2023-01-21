@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Symbol = require(script.Parent.Utils.Symbol)
 local Types = require(script.Parent.Types)
@@ -8,43 +9,28 @@ type State = Types.State
 
 local Update = {
     Type = Symbol("Update"),
-    States = {},
+    Invokables = {},
     CurrentlyInvoked = nil
 }
 Update.__index = Update
-setmetatable(Update, {__call = function(self, ...)
-    return Update.new(...)
-end})
 
 type Update = {}
 
-local function capture()
-    local captured = {}
-
-    for i, v in Update.States do
-        captured[#captured+1] = i
-    end
-
-    Update.States = {}
-
-    return captured
-end
-
 function Update.new(callback): Update
-    local self = {
+    local self = setmetatable({
         _type = Update.Type,
         _callback = callback,
-        _stateConnections = {},
-        _states = {},
+        _invokableConnections = {},
+        _invokables = {},
         OnInvoked = Signal.new()
-    }
-
-    setmetatable(self, Update)
+    }, Update)
 
     Update.CurrentlyInvoked = self
     self._callback()
     Update.CurrentlyInvoked = nil
-    local captured = self:_getStates()
+    task.spawn(function()
+        self:_getStates()
+    end)
 
     return self
 end
@@ -63,25 +49,38 @@ function Update:_getStates()
         end
     end)
     captured = self:_capture()
-    self._states = {}
+    self._invokables = {}
 
-    for i, v in self._stateConnections do
+    for i, v in self._invokableConnections do
         if not table.find(captured, v) then
             v:Disconnect()
-            table.remove(self._stateConnections, i)
+            table.remove(self._invokableConnections, i)
         end
     end
 
     for i, v in captured do
-        table.insert(self._stateConnections, v.OnChanged:Connect(function()
-            Update.CurrentlyInvoked = self
-            local res = self._callback()
-            Update.CurrentlyInvoked = nil
-            task.spawn(function()
-                self:_getStates()
+        if v.OnChanged then
+            table.insert(self._invokableConnections, v.OnChanged:Connect(function()
+                Update.CurrentlyInvoked = self
+                local res = self._callback()
+                Update.CurrentlyInvoked = nil
+                task.spawn(function()
+                    self:_getStates()
+                end)
+                self.OnInvoked:Fire(res)
+            end))
+        elseif v then
+            local c; c = RunService.Heartbeat:Connect(function(deltaTime)
+                Update.CurrentlyInvoked = self
+                local res = self._callback()
+                Update.CurrentlyInvoked = nil
+                task.spawn(function()
+                    self:_getStates()
+                end)
+                self.OnInvoked:Fire(res)
             end)
-            self.OnInvoked:Fire(res)
-        end))
+            table.insert(self._invokableConnections, c)
+        end
     end
 
     return captured
@@ -90,19 +89,19 @@ end
 function Update:_capture()
     local captured = {}
 
-    for i, v in self._states do
+    for i, v in self._invokables do
         captured[#captured+1] = i
     end
 
-    self._states = {}
+    self._invokables = {}
 
     return captured
 end
 
-function Update.registerState(state)
+function Update.registerState(invokable)
     local currentlyInvoked = Update.CurrentlyInvoked
     if not currentlyInvoked then return end
-    currentlyInvoked._states[state] = true
+    currentlyInvoked._invokables[invokable] = true
     --table.insert(Update.States, state)
 end
 
