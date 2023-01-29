@@ -17,6 +17,15 @@ return function (props)
         AutoButtonColor = false,
         TextColor3 = props.TextColor3,
 
+        [Struct.Symbols.Events] = Helper.Overwrite(props[Struct.Symbols.Events]){
+            Activated = function()
+
+                print("Clicked 1")
+
+                return props[Struct.Symbols.Events]
+            end
+        },
+
         [Struct.Symbols.Children] = {
             New "UICorner" {
                 CornerRadius = UDim.new(0, props.Bevel)

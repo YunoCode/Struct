@@ -17,15 +17,15 @@ return function (props)
         Name = "Urmom",
         Size = sizeSpring,
 
-        [Struct.Symbols.Events] = Helper.Overwrite (props[Struct.Symbols.Events]) {
-            MouseEnter = function()
-                sizeSpring:Set(Helper.MultUDim2(propSize, 1.1))
-            end,
+        -- [Struct.Symbols.Events] = props[Struct.Symbols.Events] -- Helper.Overwrite (props[Struct.Symbols.Events]) {
+            -- MouseEnter = function()
+            --     sizeSpring:Set(Helper.MultUDim2(propSize, 1.1))
+            -- end,
 
-            MouseLeave = function()
-                sizeSpring:Set(propSize)
-            end,
-        } 
+            -- MouseLeave = function()
+            --     sizeSpring:Set(propSize)
+            -- end,
+        -- } 
     }
 end
 

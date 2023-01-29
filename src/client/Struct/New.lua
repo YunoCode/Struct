@@ -24,7 +24,7 @@ local function trySetProperty(instance, i, v)
     end)
 
     if not isPropertyExist then
-        throwErr(("property %s is not a valid property in %s"):format(i, instance.ClassName))
+        return --throwErr(("property %s is not a valid property in %s"):format(i, instance.ClassName))
     end
 
     local isAssignedValueValid = pcall(function()
@@ -37,6 +37,20 @@ local function trySetProperty(instance, i, v)
 end
 
 type Properties = { [string | Symbol]: any | State | Update | {}, }
+
+local function recurCall(lookFor, t, args)
+    for i, v in t do
+        if type(v) == "function" and lookFor == i then
+            local res = v(unpack(args))
+            if type(res) == "nil" then return
+            elseif type(res) ~= "table" then
+                error("expected table got "..type(res))
+            else
+                recurCall(lookFor, res, args)
+            end
+        end
+    end
+end
 
 function New.new(ClassName: string | () -> (Instance))
     local scs, instance = pcall(Instance.new, ClassName)
@@ -63,7 +77,6 @@ function New.new(ClassName: string | () -> (Instance))
 end
 
 function New.AssignProperties(instance: Instance, Properties)
-    print(Properties)
     for i, v in Properties do
         if type(i) == "string" then
             if i == "Parent" and v == Symbols.PlayerGui then
@@ -111,9 +124,11 @@ function New.AssignProperties(instance: Instance, Properties)
         elseif i == Symbols.Events then
             for eventName, eventFn in v do
                 if instance[eventName] then
-                    instance[eventName]:Connect(eventFn)
+                    instance[eventName]:Connect(function(...)
+                        recurCall(eventName, v, {...})
+                    end)
                 else
-                    throwErr(("event %s is not a valid event Name"):format(eventName)) 
+                    throwErr(("event %s is not a valid event Name"):format(eventName))
                 end
             end
         else

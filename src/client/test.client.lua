@@ -5,6 +5,7 @@ local Symbols = Struct.Symbols
 local Update = Struct.Update
 local State = Struct.State
 local Spring = Struct.Spring
+local Helper = Struct.Helper
 
 local SmoothButtonExpand = require(script.Parent.Components.SmoothButtonExpand)
 
@@ -15,9 +16,47 @@ Theme.OnChanged:Connect(function(c)
     themeSpring:Set(c)
 end)
 
+local function make(props)
+    return New "TextButton" ({
+        Name = "SmoothButton",
+        Size = props.Size,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Text = props.Text,
+        Position = props.Position,
+        Font = Enum.Font.Gotham,
+        TextSize = 20,
+        AutoButtonColor = false,
+
+        [Struct.Symbols.Events] = Helper.Overwrite(props[Struct.Symbols.Events]){
+            Activated = function()
+
+                print("Clicked 1")
+
+                --return props[Struct.Symbols.Events]
+            end
+        },
+
+        [Struct.Symbols.Children] = {
+            New "UICorner" {
+                CornerRadius = UDim.new(0, props.Bevel)
+            }
+        }
+    })
+end
+
 New "ScreenGui" {
     Parent = Symbols.PlayerGui,
     [Symbols.Children] = {
+        -- make({
+        --     Size = UDim2.new(0, 200, 0, 50),
+        --     Position = UDim2.new(0.5, 0, 0.5, 0),
+        --     [Symbols.Events] = {
+        --         Activated = function()
+        --             print("Clicked 2")
+        --             Theme:Set(Theme:Get() == Color3.new(1, 1, 1) and Color3.new(0, 0, 0) or Color3.new(1, 1, 1))
+        --         end
+        --     }}
+        -- )
         SmoothButtonExpand {
             Text = Update(function()
                 return `current color: {tostring(Theme:Get())}`
@@ -38,6 +77,7 @@ New "ScreenGui" {
 
             [Symbols.Events] = {
                 Activated = function()
+                    print("Clicked 2")
                     Theme:Set(Theme:Get() == Color3.new(1, 1, 1) and Color3.new(0, 0, 0) or Color3.new(1, 1, 1))
                 end
             }
