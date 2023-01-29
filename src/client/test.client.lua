@@ -6,6 +6,7 @@ local Update = Struct.Update
 local State = Struct.State
 local Spring = Struct.Spring
 local Helper = Struct.Helper
+local Do = Struct.Do
 
 local SmoothButtonExpand = require(script.Parent.Components.SmoothButtonExpand)
 
@@ -46,18 +47,9 @@ end
 
 New "ScreenGui" {
     Parent = Symbols.PlayerGui,
-    [Symbols.Children] = {
-        -- make({
-        --     Size = UDim2.new(0, 200, 0, 50),
-        --     Position = UDim2.new(0.5, 0, 0.5, 0),
-        --     [Symbols.Events] = {
-        --         Activated = function()
-        --             print("Clicked 2")
-        --             Theme:Set(Theme:Get() == Color3.new(1, 1, 1) and Color3.new(0, 0, 0) or Color3.new(1, 1, 1))
-        --         end
-        --     }}
-        -- )
-        SmoothButtonExpand {
+    [Symbols.Children] = Do(function(self)
+        print(self)
+        self:Insert(SmoothButtonExpand {
             Text = Update(function()
                 return `current color: {tostring(Theme:Get())}`
             end),
@@ -81,8 +73,8 @@ New "ScreenGui" {
                     Theme:Set(Theme:Get() == Color3.new(1, 1, 1) and Color3.new(0, 0, 0) or Color3.new(1, 1, 1))
                 end
             }
-        }
-    }
+        })
+    end)
 }
 
 
